@@ -1,26 +1,54 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 As the file is zipped, I'll use read_csv() from the readr package to read in the data. 
 The package dplyr is loaded to allow grouping for later summarizing activities.  
 In the whole assignment, I will use plotting functionalities from the base package as well as ggplot2 and lattice. 
-```{r}
+
+```r
 library(readr)
 activity <- read_csv("activity.zip")
+```
+
+```
+## Parsed with column specification:
+## cols(
+##   steps = col_integer(),
+##   date = col_date(format = ""),
+##   interval = col_integer()
+## )
+```
+
+```r
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 library(ggplot2)
 library(lattice)
-
 ```
 
 ## What is mean total number of steps taken per day?
-```{r}
+
+```r
 # group the activity data by date to allow a calculation of the daily sums
 act_grpby_date <- group_by(activity,date)
 total_per_day <- summarize(act_grpby_date,steps = sum(steps, na.rm = TRUE))
@@ -30,22 +58,30 @@ total_per_day <- summarize(act_grpby_date,steps = sum(steps, na.rm = TRUE))
 my_hist <- ggplot(total_per_day, aes(date))
 my_hist + geom_histogram(aes(weight = steps), binwidth = 1)
 ```
+
+```
+## Warning: Ignoring unknown aesthetics: weight
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
   
 The system shows a warning that it doesn't recognize the aesthetic weight. However, if I don't specify the aesthetic this way, the histogram looks completely different (and wrong). Therefore, I decided to ignore the warning and enjoy the result.
 
-```{r}
+
+```r
 # calculating the mean, as.integer is used to have a nicer output in the text.
 mean_steps <- as.integer(mean(total_per_day$steps))
 # calculating the mean, as.integer is used to have a nicer output in the text.
 median_steps <- as.integer(median(total_per_day$steps))
 ```
-The mean value of steps, taken per day is **`r mean_steps`**.  
-The median value of steps, taken per day is **`r median_steps`**.
+The mean value of steps, taken per day is **9354**.  
+The median value of steps, taken per day is **10395**.
 
 
 ## What is the average daily activity pattern?
 This plot is pretty straightforward. I used the base plotting system here.
-```{r}
+
+```r
 # group the activity data by interval
 act_grpby_interval <- group_by(activity,interval)
 # calculate the mean of each interval
@@ -58,23 +94,28 @@ plot(mean_per_interval$interval,
      ylab = "Average steps")
 ```
 
-```{r}
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+
+```r
 # what is the maximum average of all intervals?
 max_average <- as.numeric(max(mean_per_interval$av_steps))
 # what interval has this value?
 max_interval <- mean_per_interval$interval[mean_per_interval$av_steps == max_average]
 ```
-The 5-minute interval **`r max_interval`** contains the maximumn number of steps, on average of all days. This matches fine with the plot.
+The 5-minute interval **835** contains the maximumn number of steps, on average of all days. This matches fine with the plot.
 
 ## Imputing missing values
 First of all, how many NAs are there in the data?
-```{r}
+
+```r
 count_NAs <- sum(is.na(activity$steps))
 ```
-There are **`r count_NAs`** missing values that have to be taken care of.  
+There are **2304** missing values that have to be taken care of.  
 Having looked at the data, the missing values are not scattered across the data. There are a few days with mostly (or only) missing values, all other days seem to be fine. Therefore, an approach to use the mean of that day wouldn't work, as there is no mean value for that day.
 Due to this, my approach to fill the missing values is to use the mean value of exactly that 5 min interval of all measurements. The NA is filled with an average value taken from the whole measurement period.
-```{r}
+
+```r
 # make an exact copy of the activity data, the copy will be changed within the for loop
 activity_filled <- activity
 # for all entries in activity...
@@ -94,10 +135,11 @@ for(i in 1:nrow(activity)){
 # just to be sure, calculate the missing values in the "filled" dataset
 count_NAs <- sum(is.na(activity_filled$steps))
 ```
-Now, there are **`r count_NAs`** missing values left. That's good.  
+Now, there are **0** missing values left. That's good.  
   
 Now for the plot, which is created in the same way as the one above, only with different data.
-```{r}
+
+```r
 # group the filled data by date
 filled_grpby_date <- group_by(activity_filled,date)
 # summarize the steps by date
@@ -107,24 +149,32 @@ filled_total_per_day <-
 my_hist <- ggplot(filled_total_per_day, aes(date))
 my_hist + geom_histogram(aes(weight = steps), binwidth = 1)
 ```
+
+```
+## Warning: Ignoring unknown aesthetics: weight
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
   
 And again, I get this error message about the aesthetic, and again I decided to ignore it.
 
 Now, calculate the mean and the median for the data set without missing values.  
-```{r}
+
+```r
 # calculate the mean, again as.integer for having an integer value that fits
 # nicer into the output
 mean_steps <- as.integer(mean(filled_total_per_day$steps))
 # calculate the median.
 median_steps <- as.integer(median(filled_total_per_day$steps))
 ```
-The mean value of steps, taken per day is **`r mean_steps`**.  
-The median value of steps, taken per day is **`r median_steps`**.  
+The mean value of steps, taken per day is **10766**.  
+The median value of steps, taken per day is **10766**.  
 My method of filling the missing values seems to have changed the data as not only the median has changed, but the mean is the same value as the median. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 I have to enrich the dataset with the days first and then decide, whether they are a weekday or a weekend.
-```{r}
+
+```r
 # get an additional column containing the day of week
 activity_filled <- mutate(activity_filled, weekday = weekdays(date))
 # now, substitute each day with the value "Weekday" or "Weekend". As I'm using a 
@@ -148,5 +198,7 @@ with(filled_mean_per_interval,xyplot(av_steps ~ interval | weekday,
                                 type = "l", 
                                 layout = c(1,2)))
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
   
 So, all set and done.
