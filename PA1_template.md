@@ -52,20 +52,12 @@ library(lattice)
 # group the activity data by date to allow a calculation of the daily sums
 act_grpby_date <- group_by(activity,date)
 total_per_day <- summarize(act_grpby_date,steps = sum(steps, na.rm = TRUE))
-# create a histogram of the daily sums. I use ggplot as I couldn't figure out
-# how to use the sums instead of the frequency of entries in the plot with the base
-# plotting package
-my_hist <- ggplot(total_per_day, aes(date))
-my_hist + geom_histogram(aes(weight = steps), binwidth = 1)
-```
-
-```
-## Warning: Ignoring unknown aesthetics: weight
+# create a histogram of the daily sums. 
+hist(total_per_day$steps)
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
-  
-The system shows a warning that it doesn't recognize the aesthetic weight. However, if I don't specify the aesthetic this way, the histogram looks completely different (and wrong). Therefore, I decided to ignore the warning and enjoy the result.
+ 
 
 
 ```r
@@ -146,17 +138,11 @@ filled_grpby_date <- group_by(activity_filled,date)
 filled_total_per_day <- 
     summarize(filled_grpby_date,steps = sum(steps))
 # create the plot
-my_hist <- ggplot(filled_total_per_day, aes(date))
-my_hist + geom_histogram(aes(weight = steps), binwidth = 1)
-```
-
-```
-## Warning: Ignoring unknown aesthetics: weight
+hist(total_per_day$steps)
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
   
-And again, I get this error message about the aesthetic, and again I decided to ignore it.
 
 Now, calculate the mean and the median for the data set without missing values.  
 
